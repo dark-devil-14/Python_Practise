@@ -4,4 +4,3 @@ print('\nMheta Familiy School of Data Science And Artificiall Intelligence')
 print('Hello @{}!!'.format(user_name))
 print(sys.version)
 
-print ('jello')
