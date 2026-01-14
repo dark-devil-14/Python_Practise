@@ -27,3 +27,11 @@ b = False
 c = a and b #AND Operator
 d = a or b #OR Operator
 print(c, d)
+
+#Area of the rectangle 
+length = float(input("Length of the rectangle: "))
+breadth = float(input("Breadth of the rectangle: "))
+
+Area = length * breadth #result 
+
+print(f"The area of the rectangle the is : {Area} sq.cm")
