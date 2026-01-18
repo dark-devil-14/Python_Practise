@@ -4,7 +4,7 @@
 
 from datetime import date, datetime
 
-print('Age Calculator with Birthday Count \nWelcome, Please Enter your DOB in YYYY/MM/DD')
+print('Age Calculator with Birthday Count \nWelcome, Please Enter your DOB in YYYY-MM-DD')
 user_dob = input()
 dob_converter = datetime.strptime(user_dob, '%Y-%m-%d').date()
 
