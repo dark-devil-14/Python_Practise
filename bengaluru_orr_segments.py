@@ -7,31 +7,32 @@ import pandas as pd
 from shapely.geometry import LineString
 from shapely.ops import linemerge, substring, unary_union
 
-ORR_PATTERN = re.compile(r"\bouter\s*ring\s*(road|rd)\b|\borr\b", re.IGNORECASE)
+ORR_NAME_PATTERN = re.compile(r"\bouter\s*ring\s*(road|rd)\b|\borr\b", re.IGNORECASE)
 
 
 def _is_orr_name(value) -> bool:
     if value is None:
         return False
     values = value if isinstance(value, (list, tuple, set)) else [value]
-    return any(ORR_PATTERN.search(str(v)) for v in values if v is not None)
+    return any(ORR_NAME_PATTERN.search(str(v)) for v in values if v is not None)
 
 
 def _to_single_linestring(geometry):
+    """Return one continuous LineString from merged line geometry."""
     if geometry.is_empty:
         raise ValueError("Merged geometry is empty")
     if geometry.geom_type == "LineString":
         return geometry
 
-    lines = [g for g in getattr(geometry, "geoms", []) if g.geom_type == "LineString" and not g.is_empty]
+    lines = [line for line in getattr(geometry, "geoms", []) if line.geom_type == "LineString" and not line.is_empty]
     if not lines:
         raise ValueError("No valid LineString geometry found")
     if len(lines) == 1:
         return lines[0]
 
-    current = max(lines, key=lambda l: l.length)
+    current = max(lines, key=lambda line: line.length)
     coords = list(current.coords)
-    remaining = [l for l in lines if l is not current]
+    remaining = [line for line in lines if line is not current]
 
     while remaining:
         end_x, end_y = coords[-1]
@@ -59,6 +60,7 @@ def _to_single_linestring(geometry):
 
 
 def build_segments_dataframe(graphml_path: str, segment_length_m: float = 500.0) -> pd.DataFrame:
+    """Build segment centroids and lengths from ORR edges in a local GraphML network."""
     graph = ox.load_graphml(graphml_path)
     edges = ox.graph_to_gdfs(graph, nodes=False, fill_edge_geometry=True)
 
@@ -100,7 +102,7 @@ def build_segments_dataframe(graphml_path: str, segment_length_m: float = 500.0)
 
 
 def main():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Generate Bengaluru ORR segment centroids from GraphML")
     parser.add_argument("graphml_path")
     parser.add_argument("output_csv")
     parser.add_argument("--segment-length", type=float, default=500.0)
